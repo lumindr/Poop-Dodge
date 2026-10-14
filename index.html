@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A web arcade game where you dodge falling obstacles and chase a high score." />
+    <meta name="theme-color" content="#171614" />
+    <title>Poop Dodge</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%A9%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Jua&amp;family=M+PLUS+Rounded+1c:wght@500;700;800;900&amp;family=ZCOOL+KuaiLe&amp;display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <svg class="svg-filters" aria-hidden="true">
+      <defs>
+        <filter id="connected-text-outline" x="-10%" y="-15%" width="120%" height="130%" color-interpolation-filters="sRGB">
+          <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="expanded" />
+          <feComposite in="expanded" in2="SourceAlpha" operator="out" result="outline" />
+          <feFlood flood-color="#f6f0e4" result="outline-color" />
+          <feComposite in="outline-color" in2="outline" operator="in" />
+        </filter>
+      </defs>
+    </svg>
+
+    <main class="app-shell">
+      <section class="game-card" aria-label="Poop Dodge 게임" data-i18n-aria="gameLabel">
+        <div class="game-stage" id="game-stage">
+          <canvas id="game-canvas" width="720" height="900" data-i18n="canvasFallback">
+            이 게임을 실행하려면 Canvas를 지원하는 브라우저가 필요합니다.
+          </canvas>
+          <div class="obstacle-layer" id="obstacle-layer" aria-hidden="true"></div>
+
+          <div class="screen screen-start" id="start-screen">
+            <div class="background-picker" id="background-picker">
+              <button class="language-menu-button" id="background-menu-button" type="button" aria-haspopup="menu" aria-expanded="false">
+                <span data-i18n="backgroundMenu">배경</span>
+                <span class="background-current" id="background-current">오후</span>
+                <span class="language-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <button class="sound-toggle" id="sound-toggle" type="button" role="switch" aria-checked="false">
+                <span id="sound-icon" aria-hidden="true">🔇</span>
+              </button>
+              <div class="language-menu background-menu" id="background-menu" role="menu" aria-label="배경 선택" data-i18n-aria="backgroundLabel" aria-hidden="true">
+                <button class="language-option background-option" data-background="morning" role="menuitem" type="button" data-i18n="themeMorning">아침</button>
+                <button class="language-option background-option is-selected" data-background="afternoon" role="menuitem" type="button" data-i18n="themeAfternoon" aria-current="true">오후</button>
+                <button class="language-option background-option" data-background="evening" role="menuitem" type="button" data-i18n="themeEvening">저녁</button>
+                <button class="language-option background-option" data-background="night" role="menuitem" type="button" data-i18n="themeNight">밤</button>
+              </div>
+            </div>
+
+            <div class="language-picker" id="language-picker">
+              <button class="language-menu-button" id="language-menu-button" type="button" aria-haspopup="menu" aria-expanded="false">
+                <span data-i18n="languageMenu">LANGUAGE</span>
+                <span class="language-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="language-menu" id="language-menu" role="menu" aria-label="Select language" data-i18n-aria="languageLabel" aria-hidden="true">
+                <button class="language-option" data-language="ko" role="menuitem" type="button">한국어</button>
+                <button class="language-option is-selected" data-language="en" role="menuitem" type="button" aria-current="true">English</button>
+                <button class="language-option" data-language="ja" role="menuitem" type="button">日本語</button>
+                <button class="language-option" data-language="zh" role="menuitem" type="button">中文</button>
+              </div>
+            </div>
+
+            <div class="start-layout">
+              <div class="start-main">
+                <div class="eyebrow" data-i18n="homeEyebrow">하나의 생존 모드</div>
+                <h1><span data-i18n="homeTitleTop">피할&nbsp;준비</span><br /><b data-i18n="homeTitleBottom">됐나요?</b></h1>
+                <p class="screen-copy"><span data-i18n="homeCopy1">쉬움부터 시작해 똥 지옥까지 버티세요.</span><br /><span data-i18n="homeCopy2">오래 버틸수록 속도가 빨라집니다.</span></p>
+
+                <div class="player-count-picker">
+                  <button class="player-count-toggle" id="player-count-toggle" role="switch" aria-checked="false" aria-label="플레이 인원" data-i18n-aria="playerCountLabel" type="button">
+                    <span class="player-count-indicator" aria-hidden="true"></span>
+                    <span class="player-count-choice player-count-one"><strong>1P</strong><small data-i18n="singlePlayer">1인용</small></span>
+                    <span class="player-count-choice player-count-two"><strong>2P</strong><small data-i18n="twoPlayer">2인용</small></span>
+                  </button>
+                </div>
+
+                <button class="noclip-toggle" id="noclip-toggle" type="button" role="switch" aria-checked="false">
+                  <span><strong data-i18n="noclipTitle">노클립 모드</strong><small data-i18n="noclipDescription">충돌 무시 · 최고 기록 저장 안 됨</small></span>
+                  <span class="toggle-switch" aria-hidden="true"></span>
+                </button>
+
+                <button class="noclip-toggle hard-mode-toggle" id="hard-mode-toggle" type="button" role="switch" aria-checked="false">
+                  <span><strong data-i18n="hardModeTitle">하드 모드</strong><small data-i18n="hardModeDescription">빠른 낙하 · 추가 똥 · 시작 아이템 감소</small></span>
+                  <span class="toggle-switch" aria-hidden="true"></span>
+                </button>
+
+                <button class="primary-button" id="start-button" type="button">
+                  <span class="start-button-copy"><span data-i18n="startGame">게임 시작</span><small id="home-best-score">최고 기록 00</small></span>
+                  <span class="button-key">SPACE</span>
+                </button>
+
+                <div class="controls-hint" aria-label="조작 키 안내" data-i18n-aria="moveLabel">
+                  <span class="control-item"><b>1P</b><span class="key-group"><kbd>A</kbd><kbd>D</kbd></span><span class="key-group" id="solo-arrow-controls">/<kbd>←</kbd><kbd>→</kbd></span></span>
+                  <span class="control-item" id="two-player-controls" hidden><b>2P</b><span class="key-group"><kbd>←</kbd><kbd>→</kbd></span></span>
+                  <span class="control-item"><kbd>SPACE</kbd><span data-i18n="umbrellaControl">우산 발동</span></span>
+                  <span class="control-item"><kbd>SHIFT</kbd><span data-i18n="speedBoostControl">속도 아이템</span></span>
+                </div>
+              </div>
+
+              <aside class="game-guide" aria-label="게임 방법 및 설명" data-i18n-aria="guideLabel">
+                <div class="guide-eyebrow" data-i18n="guideEyebrow">게임 방법 및 설명</div>
+                <h2 data-i18n="guideTitle">살아남는 법</h2>
+                <ul class="guide-summary">
+                  <li data-i18n="guideRuleScore">일반 똥을 피하면 1점, 맞으면 게임 오버입니다.</li>
+                  <li data-i18n="guideQuickDifficulty">30초마다 쉬움 → 보통 → 어려움 → 똥 지옥 순으로 상승합니다.</li>
+                  <li data-i18n="guideRuleTarget">움직이지 않고 3개를 피하면 다음 똥 하나가 플레이어를 노립니다.</li>
+                  <li data-i18n="guideBird">Space는 우산, Shift는 처음 주어지는 속도 아이템 5개를 사용합니다.</li>
+                  <li data-i18n="guideShield">별 아이템은 다음 충돌을 한 번 막아주고, 30점마다 아이템 1개를 보급합니다.</li>
+                  <li data-i18n="guidePowerups">자석은 아이템을 끌어당기고, 방울은 6초 동안 몸을 작게 만듭니다.</li>
+                  <li data-i18n="guideMultiplayer">2인용은 한 명이 맞으면 종료되며 아이템을 공유합니다.</li>
+                </ul>
+              </aside>
+            </div>
+          </div>
+
+          <div class="screen screen-pause" id="pause-screen" hidden>
+            <div class="eyebrow" data-i18n="pauseEyebrow">잠깐 쉬어가기</div>
+            <h2 data-i18n="pauseTitle">일시정지</h2>
+            <p class="screen-copy"><span data-i18n="pauseCopy1">Space 키를 누르면 계속 플레이합니다.</span><br /><span data-i18n="pauseCopy2">R은 재시작, ESC는 홈으로 돌아갑니다.</span></p>
+            <p class="run-stats" id="pause-run-stats">생존 00:00 · 점수 00</p>
+            <div class="pause-actions">
+              <button class="primary-button secondary-button" id="resume-button" type="button"><span data-i18n="continueGame">계속하기</span><span class="button-key">SPACE</span></button>
+              <button class="exit-button" id="exit-button" type="button" data-i18n="exitHome">홈으로 나가기 · ESC</button>
+            </div>
+          </div>
+
+          <div class="screen screen-game-over" id="game-over-screen" hidden>
+            <div class="eyebrow danger" data-i18n="gameOverEyebrow">게임 오버</div>
+            <h2 id="game-over-title" data-i18n="gameOverTitle">아깝네요!</h2>
+            <div class="final-score-wrap"><strong id="final-score">0</strong><span data-i18n="finalScore">최종 점수</span></div>
+            <p class="record-message" id="record-message" data-i18n="recordDefault">최고 기록에 다시 도전하세요.</p>
+            <p class="run-stats" id="final-run-stats">생존 00:00 · 점수 00</p>
+            <button class="primary-button" id="restart-button" type="button"><span data-i18n="restart">다시 하기</span><span class="button-key">SPACE / R</span></button>
+            <button class="home-button" id="home-button" type="button" data-i18n="changeDifficulty">홈으로 돌아가기 · ESC</button>
+          </div>
+
+          <div class="countdown-overlay" id="countdown-overlay" aria-live="assertive" hidden><strong id="countdown-value">3</strong></div>
+          <button class="fullscreen-button" id="fullscreen-button" type="button" aria-label="전체 화면"><span aria-hidden="true">⛶</span></button>
+
+          <div class="mobile-controls" aria-label="모바일 게임 컨트롤" data-i18n-aria="mobileControls">
+            <button id="move-left" type="button" aria-label="왼쪽으로 이동" data-i18n-aria="moveLeft">←</button>
+            <button id="use-speed-boost" type="button" aria-label="속도 아이템" data-i18n-aria="speedBoostControl">⚡</button>
+            <button id="pause-game" type="button" aria-label="일시정지" data-i18n-aria="pauseControl">⏸</button>
+            <button id="use-umbrella" type="button" aria-label="우산 발동" data-i18n-aria="umbrellaControl">☂</button>
+            <button id="move-right" type="button" aria-label="오른쪽으로 이동" data-i18n-aria="moveRight">→</button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="./game.js" defer></script>
+  </body>
+</html>
